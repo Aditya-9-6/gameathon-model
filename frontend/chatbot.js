@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════════
-// IRONWALL+ LOCAL AI CONSULTANT (PHI-3 / OLLAMA / LM STUDIO INTEGRATION)
+// IRONWALL+ LOCAL AI CONSULTANT (TINYLLAMA / OLLAMA / LM STUDIO INTEGRATION)
 // ════════════════════════════════════════════════════════════════════════════
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let chatHistoryLog = [
         {
             role: "system",
-            content: "You are the IronWall+ AI Consultant, a highly advanced cybersecurity defensive AI built into a cyberpunk Web Application Firewall. Answer concisely. Explain cyber attacks (SQLi, XSS, DDoS, Path Traversal, etc.) and how to mitigate them. Keep your tone professional, authoritative, and slightly robotic/cyberpunk. Do not use emojis unless absolutely necessary. Format code answers clearly."
+            content: "You are the IronWall+ AI Consultant (Powered by TinyLlama), a highly advanced cybersecurity defensive AI built into a cyberpunk Web Application Firewall. Answer EXTREMELY concisely. Explain cyber attacks (SQLi, XSS, DDoS) and mitigations in just 1 or 2 sentences max. Keep your tone professional, authoritative, and slightly robotic. Do not hallucinate."
         }
     ];
 
