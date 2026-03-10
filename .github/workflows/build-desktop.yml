@@ -65,7 +65,7 @@ jobs:
           npm run build
 
       - name: Upload Windows Asset to Release or Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: IronWall-Windows-Exe
           path: electron_app/dist/*.exe
