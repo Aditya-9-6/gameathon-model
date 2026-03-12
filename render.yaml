@@ -12,9 +12,10 @@ services:
       - key: RUST_LOG
         value: info
 
-  # 2. Static Frontend Site (Free)
-  - type: static_site
+  # 2. Static Frontend Site (Defined as Web service with static runtime)
+  - type: web
     name: ironwall-frontend
+    runtime: static
     plan: free
     staticPublishPath: ./frontend
     envVars:
