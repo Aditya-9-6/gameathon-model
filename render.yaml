@@ -4,9 +4,11 @@ services:
     name: ironwall-backend
     runtime: rust
     plan: free
-    buildCommand: cd backend && cargo build --release
+    buildCommand: cd backend && cargo build --release --jobs 1
     startCommand: ./backend/target/release/ironwall-gamethon
     envVars:
+      - key: CARGO_BUILD_JOBS
+        value: 1 # LIMIT CPU/MEM usage during build
       - key: RUST_LOG
         value: info
 
