@@ -150,7 +150,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             cursor.remove();
-            streamSpan.innerHTML = `<span style="color:#ff1744">[CONNECTION FAILED] Unable to reach Local LLM at ${endpoint}. Is Ollama running?</span>`;
+            const failureMsg = window.location.hostname.includes('onrender.com')
+                ? `[LOCAL AI UNAVAILABLE] This cloud version requires Ollama to be running on YOUR machine at ${endpoint}. Please ensure Ollama is active and allows CORS.`
+                : `[CONNECTION FAILED] Unable to reach Local LLM at ${endpoint}. Is Ollama running?`;
+            streamSpan.innerHTML = `<span style="color:#ff1744">${failureMsg}</span>`;
             console.error("Local LLM Stream Error:", error);
         } finally {
             aiSendBtn.disabled = false;

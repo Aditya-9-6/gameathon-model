@@ -25,3 +25,9 @@ desktop.ini
 # Temp / test files
 frontend/crash_test.js
 backend/crash.log
+
+# Large binaries
+*.exe
+*.apk
+**/*.exe
+**/*.apk

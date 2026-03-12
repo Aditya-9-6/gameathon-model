@@ -1,0 +1,23 @@
+services:
+  # 1. Rust Backend Web Service
+  - type: web
+    name: ironwall-backend
+    runtime: rust
+    plan: free # Explicitly using Free Tier
+    buildCommand: cd backend && cargo build --release
+    startCommand: ./backend/target/release/ironwall-gamethon
+    envVars:
+      - key: PORT
+        value: 9001 # Axum port (mapped to Render's public port)
+      - key: RUST_LOG
+        value: info
+
+  # 2. Static Frontend Site
+  - type: static
+    name: ironwall-frontend
+    runtime: static
+    plan: free # Explicitly using Free Tier
+    staticPublishPath: ./frontend
+    envVars:
+      - key: BACKEND_URL
+        value: https://ironwall-backend.onrender.com

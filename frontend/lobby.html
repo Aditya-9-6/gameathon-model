@@ -350,6 +350,13 @@
                 window.location.href = `attacker.html?host=${encodeURIComponent(targetHost)}`;
             }
         }
+
+        // Auto-detect production backend for Render deployment
+        if (window.location.hostname.includes('onrender.com')) {
+            targetHost = "ironwall-backend.onrender.com";
+            document.getElementById('panel-connect').classList.add('hidden');
+            document.getElementById('panel-roles').classList.remove('hidden');
+        }
     </script>
 
 </body>

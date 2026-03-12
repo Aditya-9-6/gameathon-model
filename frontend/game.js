@@ -18,10 +18,14 @@ if (wsParam) {
     WS_URL = wsParam;
 } else if (hostParam) {
     // If we came from lobby, connect to the proxy port on that specific host
-    WS_URL = `ws://${hostParam}/ws`;
+    WS_URL = (hostParam.includes('onrender.com')) ? `wss://${hostParam}/ws` : `ws://${hostParam}/ws`;
+} else if (window.location.hostname.includes('onrender.com')) {
+    // Production on Render — Hardcode to the backend service URL
+    WS_URL = `wss://ironwall-backend.onrender.com/ws`;
 } else {
-    // Fallback to current domain (if opened directly)
-    WS_URL = `ws://${window.location.host}/ws`;
+    // Fallback to current domain (if opened directly or local)
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    WS_URL = `${protocol}//${window.location.host}/ws`;
 }
 const CORE_RADIUS = 54;
 const PARTICLE_COUNT = 18;

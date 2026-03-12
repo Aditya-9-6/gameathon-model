@@ -517,8 +517,13 @@ async fn main() -> Result<()> {
         .with_state(app_state);
 
     let axum_handle = tokio::spawn(async move {
-        let listener = tokio::net::TcpListener::bind("0.0.0.0:9001").await.unwrap();
-        info!("🎮 axum WebSocket server listening on 0.0.0.0:9001");
+        let port = std::env::var("PORT")
+            .ok()
+            .and_then(|p| p.parse::<u16>().ok())
+            .unwrap_or(9001);
+        let addr = format!("0.0.0.0:{}", port);
+        let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
+        info!("🎮 axum WebSocket server listening on {}", addr);
         axum::serve(listener, app).await.unwrap();
     });
 
