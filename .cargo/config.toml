@@ -2,7 +2,7 @@
 # Throttle to 2 threads — keeps laptop cool during rapid hackathon testing
 jobs = 2
 # Build target OUTSIDE Google Drive — prevents Drive sync from locking .o files (os error 32)
-target-dir = "C:\\ironwall-gamethon-target"
+
 
 # sccache speeds up rebuilds — install with: cargo install sccache
 # rustc-wrapper = "sccache"
