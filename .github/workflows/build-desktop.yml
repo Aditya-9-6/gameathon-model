@@ -33,17 +33,19 @@ jobs:
           xcopy "..\frontend\*" "app\" /E /I /Y
           
           # Handle HTML redirection for Electron
-          ren "app\index.html" "defense_board.html"
-          ren "app\demo.html" "index.html"
+          # Use copy instead of move to avoid "file not found" errors if already renamed
+          copy "app\index.html" "app\defense_board.html"
+          copy "app\unified.html" "app\index.html"
           
-          # Generate package.json using Node (more robust than echo/pkg set)
+          # Generate package.json using Node (more robust than echo)
           echo const fs = require('fs'); > gen_pkg.js
           echo const pkg = { >> gen_pkg.js
           echo   name: 'ironwall-desktop', >> gen_pkg.js
           echo   version: '1.0.0', >> gen_pkg.js
           echo   main: 'main.js', >> gen_pkg.js
+          echo   author: 'Aditya-9-6', >> gen_pkg.js
           echo   scripts: { build: 'electron-builder --win --x64' }, >> gen_pkg.js
-          echo   build: { appId: 'com.ironwall.desktop', productName: 'IronWall Plus Demo', directories: { output: 'dist' } } >> gen_pkg.js
+          echo   build: { appId: 'com.ironwall.desktop', productName: 'IronWall Plus Demo', directories: { output: 'dist' }, win: { target: 'portable' } } >> gen_pkg.js
           echo }; >> gen_pkg.js
           echo fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2)); >> gen_pkg.js
           node gen_pkg.js
@@ -55,7 +57,7 @@ jobs:
           node gen_main.js
           
           # Install dependencies
-          npm install electron electron-builder rimraf
+          npm install electron electron-builder
 
       - name: Build Windows .EXE
         shell: cmd
@@ -63,21 +65,28 @@ jobs:
           cd electron_app
           npm run build
 
-      - name: Commit and Push EXE
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          files: |
+            electron_app/dist/*.exe
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Rename and Upload Asset (Optional but better for naming)
         shell: cmd
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch
-          git pull
+          cd electron_app/dist
+          ren *.exe ironwall-gamethon-desktop.exe
           
-          # Remove any previous EXEs to avoid duplicates if name changes
-          del public_site\*.exe 2>nul || echo "None to delete"
-          del frontend\*.exe 2>nul || echo "None to delete"
-          
-          copy "electron_app\dist\*.exe" "public_site\ironwall-gamethon-desktop.exe"
-          copy "electron_app\dist\*.exe" "frontend\ironwall-gamethon-desktop.exe"
-          
-          git add public_site/ironwall-gamethon-desktop.exe frontend/ironwall-gamethon-desktop.exe
-          git commit -m "Auto-generated real Windows Desktop App via GitHub Actions 🤖💻" || echo "No changes to commit"
-          git push
+      - name: Update Latest Release Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          files: electron_app/dist/ironwall-gamethon-desktop.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

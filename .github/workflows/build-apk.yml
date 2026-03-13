@@ -63,16 +63,26 @@ jobs:
           cd cap_app/android
           ./gradlew assembleDebug
 
-      - name: Commit and Push APK
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          files: |
+            cap_app/android/app/build/outputs/apk/debug/app-debug.apk
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Rename and Update Asset
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch
-          git pull
+          cp cap_app/android/app/build/outputs/apk/debug/app-debug.apk ironwall-gamethon.apk
           
-          cp cap_app/android/app/build/outputs/apk/debug/app-debug.apk public_site/ironwall-gamethon.apk
-          cp cap_app/android/app/build/outputs/apk/debug/app-debug.apk frontend/ironwall-gamethon.apk
-          
-          git add public_site/ironwall-gamethon.apk frontend/ironwall-gamethon.apk
-          git commit -m "Auto-generated real Android APK via GitHub Actions 🤖📱" || echo "No changes to commit"
-          git push
+      - name: Update Latest Release Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          files: ironwall-gamethon.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

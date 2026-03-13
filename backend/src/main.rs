@@ -756,6 +756,8 @@ mod tests {
         assert_eq!(event.payload_preview, "");
     }
 
+    /// Verifies that excessively long payloads are safely truncated to fit within
+    /// the 64-character `payload_preview` limit to prevent telemetry bloat.
     #[test]
     fn test_telemetry_event_payload_truncated_at_64() {
         let long_payload = "A".repeat(128);
@@ -763,6 +765,8 @@ mod tests {
         assert_eq!(event.payload_preview.len(), 64);
     }
 
+    /// Ensures that a blocked `TelemetryEvent` successfully serializes to a valid
+    /// JSON string with all expected critical fields present.
     #[test]
     fn test_telemetry_event_serializes_to_json() {
         let event = TelemetryEvent::blocked(&AttackType::DdosSwarm, "10.0.0.1", 290, "DDOS_SWARM");
@@ -772,6 +776,8 @@ mod tests {
         assert!(json.contains("\"severity\":95"));
     }
 
+    /// Confirms that tracking metrics calculate a positive `compute_saved_ms` 
+    /// value whenever a malicious incoming request is blocked at the proxy layer.
     #[test]
     fn test_compute_saved_is_positive_for_blocked() {
         let event = TelemetryEvent::blocked(&AttackType::ZeroDayMutator, "0.0.0.1", 480, "shellcode");

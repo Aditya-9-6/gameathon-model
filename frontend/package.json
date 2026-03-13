@@ -1,4 +1,7 @@
 {
+  "name": "ironwall-frontend",
+  "version": "1.0.0",
+  "description": "IronWall+ Frontend Assets",
   "dependencies": {
     "cross-fetch": "^4.1.0",
     "node-fetch": "^3.3.2"
