@@ -28,12 +28,9 @@ jobs:
           mkdir electron_app
           cd electron_app
           
-          # Create app directory and copy files
+          # Create app directory and copy files (EXCLUDING node_modules and original package.json)
           mkdir app
-          xcopy "..\frontend\*" "app\" /E /I /Y
-          
-          # Remove problematic nested package.json to avoid electron-builder confusion
-          if exist "app\package.json" del /f /q "app\package.json"
+          robocopy "..\frontend" "app" /E /XD node_modules /XF package.json package-lock.json *.exe *.apk
           
           # Handle HTML redirection for Electron
           # Use copy instead of move to avoid "file not found" errors if already renamed

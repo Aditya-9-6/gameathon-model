@@ -25,7 +25,7 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
+          distribution: 'temurin'
           java-version: '17'
 
       - name: Create Capacitor App
@@ -62,7 +62,7 @@ jobs:
         uses: gradle/gradle-build-action@v3
         with:
           gradle-version: current
-          arguments: assembleDebug
+          arguments: assembleDebug --no-daemon
           build-root-directory: cap_app/android
 
       - name: Create GitHub Release
