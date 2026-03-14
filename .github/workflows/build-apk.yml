@@ -59,9 +59,11 @@ jobs:
           npx cap sync android
 
       - name: Build Android APK
-        run: |
-          cd cap_app/android
-          ./gradlew assembleDebug
+        uses: gradle/gradle-build-action@v3
+        with:
+          gradle-version: current
+          arguments: assembleDebug
+          build-root-directory: cap_app/android
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

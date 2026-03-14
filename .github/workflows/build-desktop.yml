@@ -50,6 +50,7 @@ jobs:
           echo   author: 'Aditya-9-6', >> gen_pkg.js
           echo   license: 'MIT', >> gen_pkg.js
           echo   scripts: { build: 'electron-builder --win --x64' }, >> gen_pkg.js
+          echo   devDependencies: { electron: '^28.0.0', 'electron-builder': '^24.0.0' }, >> gen_pkg.js
           echo   build: { appId: 'com.ironwall.desktop', productName: 'IronWall Plus Demo', directories: { output: 'dist' }, win: { target: 'portable' } } >> gen_pkg.js
           echo }; >> gen_pkg.js
           echo fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2)); >> gen_pkg.js
@@ -62,7 +63,7 @@ jobs:
           node gen_main.js
           
           # Install dependencies
-          npm install electron electron-builder
+          npm install --save-dev electron electron-builder
 
       - name: Build Windows .EXE
         shell: cmd
