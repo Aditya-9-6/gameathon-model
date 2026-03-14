@@ -30,7 +30,7 @@ jobs:
           
           # Create app directory and copy files (EXCLUDING node_modules and original package.json)
           mkdir app
-          robocopy "..\frontend" "app" /E /XD node_modules /XF package.json package-lock.json *.exe *.apk
+          robocopy "..\frontend" "app" /E /XD node_modules /XF package.json package-lock.json *.exe *.apk || if %errorlevel% LSS 8 (exit 0) else (exit %errorlevel%)
           
           # Handle HTML redirection for Electron
           # Use copy instead of move to avoid "file not found" errors if already renamed

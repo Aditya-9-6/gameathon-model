@@ -45,9 +45,10 @@ jobs:
           }
           EOF
           
-          # Copy frontend files
+          # Copy frontend files (EXCLUDING node_modules and package files)
           mkdir www
-          cp -r ../frontend/* www/
+          # Use rsync if available, or find/cp combination for precision
+          find ../frontend -maxdepth 1 ! -name "node_modules" ! -name "package.json" ! -name "package-lock.json" ! -name "frontend" -exec cp -r {} www/ \;
           
           # Setup mobile landing page
           mv www/index.html www/game_board.html
