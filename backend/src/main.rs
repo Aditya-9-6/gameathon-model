@@ -13,9 +13,10 @@ use axum::{
         State,
     },
     response::IntoResponse,
-    routing::get,
+    routing::{get, get_service},
     Router,
 };
+use tower_http::services::ServeDir;
 use chrono::Utc;
 use lazy_static::lazy_static;
 use async_trait::async_trait;
@@ -485,8 +486,9 @@ async fn index() -> impl IntoResponse {
             <p><strong>Telemetry:</strong> Axum WebSocket</p>
         </div>
         <div style="margin-top:20px">
-            <p style="color:#39ff14">🛡️ <a href="index.html" style="color:#00f5ff;text-decoration:none">OPEN DEFENSE HUD →</a></p>
-            <p style="color:#ff6b35">🔴 <a href="attacker.html" style="color:#ff6b35;text-decoration:none">OPEN RED TEAM PANEL →</a></p>
+            <p style="color:#39ff14">🛡️ <a href="/index.html" style="color:#00f5ff;text-decoration:none">OPEN DEFENSE HUD →</a></p>
+            <p style="color:#ff6b35">🔴 <a href="/attacker.html" style="color:#ff6b35;text-decoration:none">OPEN RED TEAM PANEL →</a></p>
+            <p style="color:#a855f7">🎮 <a href="/unified.html" style="color:#a855f7;text-decoration:none">OPEN UNIFIED COMMAND CENTER →</a></p>
         </div>
         </body>
         </html>
@@ -513,12 +515,25 @@ async fn main() -> Result<()> {
     let (tx, _rx) = broadcast::channel::<String>(256);
     let tx_clone = tx.clone();
 
+    // Detect frontend directory path (handle local vs Render/Cloud)
+    let frontend_path = if std::path::Path::new("frontend").exists() {
+        "frontend"
+    } else if std::path::Path::new("../frontend").exists() {
+        "../frontend"
+    } else {
+        "." // Fallback to current dir
+    };
+
+    info!("📁 Serving static files from: {}", frontend_path);
+
     // ── Layer 2: axum WebSocket telemetry server ──────────────────
     let app_state = AppState { tx: tx.clone() };
     let app = Router::new()
         .route("/", get(index))
         .route("/ws", get(ws_handler))
         .route("/health", get(health))
+        .nest_service("/assets", ServeDir::new(frontend_path)) 
+        .fallback_service(ServeDir::new(frontend_path).fallback(get(index))) 
         .layer(
             CorsLayer::new()
                 .allow_origin(Any)

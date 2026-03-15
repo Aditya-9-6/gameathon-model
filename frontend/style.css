@@ -3080,3 +3080,6 @@ mark.danger-token {
     touch-action: manipulation;
   }
 }
+#header .header-actions { display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; }
+.record-btn { padding: 4px 10px !important; margin: 0 4px !important; }
+.nav-btn { font-weight: bold; letter-spacing: 0.05em; }
