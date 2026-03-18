@@ -472,6 +472,10 @@ async fn health() -> impl IntoResponse {
 }
 
 /// Serve the main frontend index.html from the filesystem
+async fn serve_root(state: State<AppState>) -> impl IntoResponse {
+    serve_html(State(state.frontend_path.clone()), "index.html").await
+}
+
 async fn serve_unified(state: State<AppState>) -> impl IntoResponse {
     serve_html(State(state.frontend_path.clone()), "unified.html").await
 }
@@ -584,8 +588,8 @@ async fn main() -> Result<()> {
     };
     
     let app = Router::new()
-        .route("/", get(serve_index))
-        .route("/index.html", get(serve_index))
+        .route("/", get(serve_root))
+        .route("/index.html", get(serve_root))
         .route("/unified.html", get(serve_unified))
         .route("/attacker.html", get(serve_attacker))
         .route("/lobby.html", get(serve_lobby))
