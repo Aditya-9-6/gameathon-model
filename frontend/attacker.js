@@ -860,5 +860,33 @@ function showLevelUpSequence(level) {
 }
 
 // ── Boot ─────────────────────────────────────────────────────────────────────
+// ── Role Enforcement (Multi-Device) ──────────────────────────────────────────
+function enforceRole() {
+    const isLobbySession = urlParams.has('host') || urlParams.has('ws');
+    
+    if (isLobbySession) {
+        // Add a "Leave Session" button to the attacker header
+        const header = document.querySelector('.header-left');
+        if (header) {
+            const leaveBtn = document.createElement('button');
+            leaveBtn.textContent = '🏠 LEAVE';
+            leaveBtn.className = 'record-btn';
+            leaveBtn.style.marginLeft = '10px';
+            leaveBtn.style.padding = '2px 8px';
+            leaveBtn.style.fontSize = '0.6rem';
+            leaveBtn.style.borderColor = 'var(--neon-orange)';
+            leaveBtn.style.color = 'var(--neon-orange)';
+            leaveBtn.onclick = () => {
+                if (confirm('Leave this session and return to lobby?')) {
+                    window.location.href = 'lobby.html';
+                }
+            };
+            header.appendChild(leaveBtn);
+        }
+    }
+}
+
+// ── Boot ─────────────────────────────────────────────────────────────────────
 checkLevelUp();
 connectWS();
+enforceRole();

@@ -1,4 +1,4 @@
-﻿/* ═══════════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════
    IronWall+ Gamethon — Cyberpunk Stylesheet v2 (Educational Edition)
    CRT Scanlines · Neon Glow · WebGL Glitch · Modal System
 ═══════════════════════════════════════════════════════════════ */
@@ -451,19 +451,18 @@ body::after {
    FEATURE 3 — AI DEBRIEF NOTIFICATION + OUROBOROS MODE
 ═══════════════════════════════════════════════════════════════ */
 .ai-debrief {
-  position: absolute;
-  bottom: 20px;
-  left: 16px;
-  width: 340px;
-  max-width: calc(100% - 32px);
-  background: rgba(3, 10, 22, 0.92);
-  border: 1px solid rgba(41, 121, 255, 0.6);
-  border-left: 3px solid var(--neon-blue);
+  bottom: 100px;
+  left: 20px;
+  width: 360px;
+  max-width: calc(100% - 40px);
+  background: rgba(3, 10, 22, 1.0);
+  border: 1px solid rgba(41, 121, 255, 0.8);
+  border-left: 5px solid var(--neon-blue);
   border-radius: 8px;
-  padding: 14px 16px;
-  z-index: 200;
-  backdrop-filter: blur(12px);
-  box-shadow: 0 0 30px rgba(41, 121, 255, 0.25), inset 0 0 20px rgba(41, 121, 255, 0.05);
+  padding: 16px 20px;
+  z-index: 2000;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 0 40px rgba(41, 121, 255, 0.4), inset 0 0 20px rgba(41, 121, 255, 0.1);
 
   /* Start off-screen left */
   transform: translateX(calc(-100% - 20px));

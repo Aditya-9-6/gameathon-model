@@ -1108,32 +1108,38 @@ function loop(t) {
     }
 }
  
- // ── Inter-Frame Navigation Proxy (Unified Mode) ─────────────────────────────
- function initNavProxy() {
-     // Check if we are in an iframe
-     const inIframe = window.self !== window.top;
-     if (!inIframe) return;
- 
-     // Override the navigation buttons
-     const navButtons = {
-         'unified-btn': 'split',
-         'red-team-btn': 'attack'
-     };
- 
-     Object.entries(navButtons).forEach(([id, view]) => {
-         const btn = document.getElementById(id);
-         if (btn) {
-             // Remove inline onclick to prevent default navigation
-             btn.removeAttribute('onclick');
-             btn.onclick = (e) => {
-                 e.preventDefault();
-                 window.parent.postMessage({ type: 'SET_VIEW', mode: view }, '*');
-             };
-         }
-     });
- }
- 
- initNavProxy();
+// ── Role Enforcement (Multi-Device) ──────────────────────────────────────────
+function enforceRole() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const isLobbySession = urlParams.has('host') || urlParams.has('ws');
+    
+    if (isLobbySession) {
+        // Hide regular navigation buttons as we are in a dedicated device role
+        const navActions = document.querySelector('.header-actions');
+        if (navActions) {
+            navActions.style.display = 'none';
+        }
+        
+        // Add a "Leave Session" button
+        const header = document.getElementById('header');
+        if (header) {
+            const leaveBtn = document.createElement('button');
+            leaveBtn.textContent = '🏠 LEAVE SESSION';
+            leaveBtn.className = 'record-btn';
+            leaveBtn.style.borderColor = 'var(--neon-orange)';
+            leaveBtn.style.color = 'var(--neon-orange)';
+            leaveBtn.onclick = () => {
+                if (confirm('Leave this session and return to lobby?')) {
+                    window.location.href = 'lobby.html';
+                }
+            };
+            header.appendChild(leaveBtn);
+        }
+    }
+}
+
+enforceRole();
+initNavProxy();
  
 // ── Boot ────────────────────────────────────────────────────────────────────
 connectWS();
