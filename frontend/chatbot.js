@@ -13,9 +13,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // Config fields
     const epUrlInput = document.getElementById('ai-endpoint-url');
     const modelNameInput = document.getElementById('ai-model-name');
+    
+    // ── Cloud API Base Detection ──
+    const urlParams = new URLSearchParams(window.location.search);
+    const hostParam = urlParams.get('host');
+    let API_BASE;
+    if (hostParam) {
+        API_BASE = (hostParam.includes('://')) ? hostParam : `http://${hostParam}`;
+    } else if (window.location.hostname.includes('onrender.com')) {
+        API_BASE = `https://ironwall-backend.onrender.com`;
+    } else {
+        API_BASE = `${window.location.protocol}//${window.location.host}`;
+    }
+
     // Default to Ollama's /api/chat endpoint which accepts messages[] array
     if (epUrlInput && (!epUrlInput.value || epUrlInput.value.includes('/api/generate') || epUrlInput.value.includes('localhost:11434'))) {
-        epUrlInput.value = '/api/ai/chat';
+        epUrlInput.value = API_BASE + '/api/ai/chat';
     }
     if (modelNameInput && !modelNameInput.value) {
         modelNameInput.value = 'tinyllama';

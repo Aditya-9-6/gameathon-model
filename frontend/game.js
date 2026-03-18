@@ -13,17 +13,18 @@ const urlParams = new URLSearchParams(window.location.search);
 const hostParam = urlParams.get('host');
 const wsParam = urlParams.get('ws');
 
-let WS_URL;
+let WS_URL, API_BASE;
 if (wsParam) {
     WS_URL = wsParam;
+    API_BASE = wsParam.replace('/ws', '');
 } else if (hostParam) {
-    // If we came from lobby, connect to the proxy port on that specific host
+    API_BASE = (hostParam.includes('://')) ? hostParam : `http://${hostParam}`;
     WS_URL = (hostParam.includes('onrender.com')) ? `wss://${hostParam}/ws` : `ws://${hostParam}/ws`;
 } else if (window.location.hostname.includes('onrender.com')) {
-    // Production on Render — Hardcode to the backend service URL
+    API_BASE = `https://ironwall-backend.onrender.com`;
     WS_URL = `wss://ironwall-backend.onrender.com/ws`;
 } else {
-    // Fallback to current domain (if opened directly or local)
+    API_BASE = `${window.location.protocol}//${window.location.host}`;
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     WS_URL = `${protocol}//${window.location.host}/ws`;
 }
@@ -1141,7 +1142,7 @@ function enforceRole() {
 // ── Lobby Code Display ──────────────────────────────────────────────────────
 async function fetchLobbyCode() {
     try {
-        const res = await fetch('/api/lobby-code');
+        const res = await fetch(API_BASE + '/api/lobby-code');
         const data = await res.json();
         const badge = document.getElementById('lobby-code-badge');
         const val = document.getElementById('lobby-code-val');
