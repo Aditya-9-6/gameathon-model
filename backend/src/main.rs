@@ -472,12 +472,32 @@ async fn health() -> impl IntoResponse {
 }
 
 /// Serve the main frontend index.html from the filesystem
-async fn serve_index(State(frontend_path): State<String>) -> impl IntoResponse {
-    let path = std::path::Path::new(&frontend_path).join("index.html");
+async fn serve_unified(state: State<AppState>) -> impl IntoResponse {
+    serve_html(State(state.frontend_path.clone()), "unified.html").await
+}
+
+async fn serve_attacker(state: State<AppState>) -> impl IntoResponse {
+    serve_html(State(state.frontend_path.clone()), "attacker.html").await
+}
+
+async fn serve_lobby(state: State<AppState>) -> impl IntoResponse {
+    serve_html(State(state.frontend_path.clone()), "lobby.html").await
+}
+
+async fn serve_html(State(frontend_path): State<String>, filename: &str) -> impl IntoResponse {
+    let path = std::path::Path::new(&frontend_path).join(filename);
+    info!("📄 Serving HTML: {:?}", path);
     match tokio::fs::read_to_string(path).await {
         Ok(html) => axum::response::Html(html).into_response(),
-        Err(_) => axum::response::Html("<h1>IronWall+ Backend</h1><p>Frontend assets not found.</p>").into_response(),
+        Err(e) => {
+            error!("❌ HTML Not Found: {:?} | error: {}", filename, e);
+            axum::response::IntoResponse::into_response((axum::http::StatusCode::NOT_FOUND, format!("{} not found", filename)))
+        }
     }
+}
+
+async fn get_lobby_code() -> impl IntoResponse {
+    axum::Json(serde_json::json!({ "code": "4496" }))
 }
 
 /// Simple AI Proxy — allows browser to talk to local Ollama via the backend
@@ -566,10 +586,9 @@ async fn main() -> Result<()> {
     let app = Router::new()
         .route("/", get(serve_index))
         .route("/index.html", get(serve_index))
-        .route("/unified.html", get(move |s| serve_html(s, "unified.html")))
-        .route("/attacker.html", get(move |s| serve_html(s, "attacker.html")))
-        .route("/lobby.html", get(move |s| serve_html(s, "lobby.html")))
-        .route("/demo.html", get(move |s| serve_html(s, "demo.html")))
+        .route("/unified.html", get(serve_unified))
+        .route("/attacker.html", get(serve_attacker))
+        .route("/lobby.html", get(serve_lobby))
         .route("/api/lobby-code", get(get_lobby_code))
         .route("/ws", get(ws_handler))
         .route("/health", get(health))
