@@ -18,6 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const hostParam = urlParams.get('host');
     let API_BASE;
+    let IS_LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
     if (hostParam) {
         API_BASE = (hostParam.includes('://')) ? hostParam : `http://${hostParam}`;
     } else if (window.location.hostname.includes('onrender.com')) {
@@ -26,13 +28,36 @@ document.addEventListener('DOMContentLoaded', () => {
         API_BASE = `${window.location.protocol}//${window.location.host}`;
     }
 
-    // Default to Ollama's /api/chat endpoint which accepts messages[] array
-    if (epUrlInput && (!epUrlInput.value || epUrlInput.value.includes('/api/generate') || epUrlInput.value.includes('localhost:11434'))) {
-        epUrlInput.value = API_BASE + '/api/ai/chat';
+    // Default to LOCAL Ollama if running locally to avoid proxy latency
+    if (epUrlInput && !epUrlInput.value) {
+        if (IS_LOCAL) {
+            epUrlInput.value = 'http://localhost:11434/api/chat';
+        } else {
+            epUrlInput.value = API_BASE + '/api/ai/chat';
+        }
     }
     if (modelNameInput && !modelNameInput.value) {
         modelNameInput.value = 'tinyllama';
     }
+
+    // ── Model Refresh Logic ──
+    async function refreshModels() {
+        const base = epUrlInput.value.replace(/\/api\/(chat|generate)/, '');
+        try {
+            const res = await fetch(base + '/api/tags');
+            const data = await res.json();
+            if (data.models) {
+                console.log('Detected Ollama Models:', data.models.map(m => m.name));
+                // Optional: Update modelNameInput to first model if current is empty
+                if (!modelNameInput.value && data.models.length > 0) {
+                    modelNameInput.value = data.models[0].name;
+                }
+            }
+        } catch (e) {
+            console.warn('Could not auto-detect models. Ensure Ollama is running with OLLAMA_ORIGINS="*"');
+        }
+    }
+    refreshModels();
 
     if (!aiToggleBtn || !aiPanel) return;
 
@@ -114,6 +139,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body
+            }).catch(err => {
+                // Catch Mixed Content/CORS/Offline errors
+                throw new Error("CONNECTION_FAILED");
             });
 
             if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -164,13 +192,18 @@ document.addEventListener('DOMContentLoaded', () => {
             cursor.remove();
             chatHistoryLog.push({ role: 'assistant', content: fullReply });
 
-        } catch (error) {
-            cursor.remove();
-            const failureMsg = window.location.hostname.includes('onrender.com')
-                ? `[LOCAL AI UNAVAILABLE] This cloud version requires Ollama to be running on YOUR machine at ${endpoint}. <br><br><strong>Setup:</strong><br>1. Install Ollama<br>2. Run <code>set OLLAMA_ORIGINS="*"</code><br>3. Restart Ollama and refresh.`
-                : `[CONNECTION FAILED] Unable to reach Local LLM at ${endpoint}. <br><br>Ensure Ollama is running and CORS is enabled: <code>set OLLAMA_ORIGINS="*"</code>`;
-            streamSpan.innerHTML = `<span style="color:#ff1744">${failureMsg}</span>`;
-            console.error("Local LLM Stream Error:", error);
+        } catch (err) {
+            console.error('AI Chat Error:', err);
+            const isConnError = err.message === 'CONNECTION_FAILED';
+            
+            streamSpan.innerHTML = isConnError 
+                ? `<span style="color:var(--neon-orange)">[CRITICAL] CONNECTION BLOCKED.</span><br><br>
+                   To fix this 100%:<br>
+                   1. Run this in Termninal: <code>$env:OLLAMA_ORIGINS="*"; ollama serve</code><br>
+                   2. If on Render, click the 🛡️ Shield icon in Chrome URL bar -> <strong>"Load unsafe scripts"</strong> (to allow HTTP localhost).<br>
+                   3. Ensure model <strong>${model}</strong> is installed: <code>ollama pull ${model}</code>`
+                : `<span style="color:var(--neon-red)">[OFFLINE]</span> ${err.message}. Ensure Ollama is running.`;
+            cursor.style.display = 'none';
         } finally {
             aiSendBtn.disabled = false;
             aiInput.disabled = false;
