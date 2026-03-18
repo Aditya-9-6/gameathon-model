@@ -32,7 +32,20 @@ Open both files directly in a browser (no build step needed):
 | File | Purpose |
 |------|---------|
 | `frontend/index.html` | **Main Game Board** — project on the big screen |
+| `frontend/lobby.html` | **WiFi Bridge** — easy connection for multiple devices |
 | `frontend/attacker.html` | **Judge Controller** — open on phone / second tab |
+
+---
+
+## 📱 Multi-Device Setup (Judge Connectivity)
+
+IronWall+ now features a built-in **WiFi Bridge (Lobby)** for easy judge connection:
+
+1.  **Host**: Start the app on your main PC and open `index.html`.
+2.  **Lobby Code**: Look at the top header for the 4-digit **LOBBY CODE** (e.g. `4496`).
+3.  **Share**: Click the **Share** button next to the code to copy a direct join link.
+4.  **Join**: On any phone/tablet on the same WiFi, open the link or go to `http://[YOUR-IP]:3000/lobby.html` and enter the code.
+5.  **Sync**: Attacks fired from the mobile panel now reflect instantly on the main board!
 
 ---
 

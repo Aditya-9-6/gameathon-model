@@ -431,11 +431,12 @@ By default, Ollama blocks external Wi-Fi requests for security. You must start i
    ollama serve
    ```
 
-#### Connecting the Mobile Phones
-When a judge opens `attacker.html` on their phone and clicks the **🤖 AI** button:
-1. They must change the generic `localhost` URL in the configuration box to your laptop's **actual Wi-Fi IP address**.
-2. **Example:** If your laptop's IP is `192.168.1.55`, they should enter `http://192.168.1.55:1234/v1/chat/completions` (for LM Studio) or `http://192.168.1.55:11434/api/generate` (for Ollama).
-3. The AI is pre-loaded with an IronWall+ System Prompt and is ready to answer questions about vulnerabilities!
+#### ⚡ Connecting Multiple Devices (The Easy Way)
+The newer **WiFi Bridge** system handles the networking automatically:
+1. **Host**: Start the app on your laptop. Note the **LOBBY CODE** in the header.
+2. **Share**: Click the **Share** icon next to the code to copy the join link.
+3. **Join**: Open the link on the judge's phone (or enter the 4-digit code at `/lobby.html`).
+4. **Result**: The AI Consultant and Attacker panels will automatically sync to your laptop's backend without any manual IP configuration!
 
 ---
 
