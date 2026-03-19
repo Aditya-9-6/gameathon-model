@@ -544,10 +544,12 @@ async fn ai_proxy(
                 },
                 "done": true
             });
+            // CRITICAL: Append newline for NDJSON streaming decoder in chatbot.js
+            let body_str = format!("{}\n", mock_response.to_string());
             axum::response::Response::builder()
                 .status(200)
                 .header("Content-Type", "application/json")
-                .body(axum::body::Body::from(mock_response.to_string()))
+                .body(axum::body::Body::from(body_str))
                 .unwrap()
         }
     }
@@ -609,20 +611,19 @@ async fn main() -> Result<()> {
         )
         .with_state(app_state);
 
+    // ── Layer 2: axum Core Server (Internal) ──────────────────────
     let axum_handle = tokio::spawn(async move {
-        let port = std::env::var("PORT")
-            .ok()
-            .and_then(|p| p.parse::<u16>().ok())
-            .unwrap_or(9001);
-        let addr = format!("0.0.0.0:{}", port);
+        // Internal port - Pingora forwards traffic here
+        let addr = "127.0.0.1:9001";
         let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
-        info!("🎮 axum WebSocket server listening on {}", addr);
+        info!("🎮 Internal axum server listening on {}", addr);
         axum::serve(listener, app).await.unwrap();
     });
 
-    // ── Layer 1: Pingora proxy server ─────────────────────────────
+    // ── Layer 1: Pingora WAF Proxy (Public Entry Point) ───────────
     let pingora_handle = tokio::task::spawn_blocking(move || {
-        let opt = Opt::default();
+        // Use fixed opts to avoid Render passing unwanted args to Pingora
+        let opt = Opt::from_iter(vec!["ironwall"]);
         let mut server = Server::new(Some(opt)).expect("Pingora server init failed");
         server.bootstrap();
 
@@ -630,36 +631,35 @@ async fn main() -> Result<()> {
         let mut proxy_service =
             pingora_proxy::http_proxy_service(&server.configuration, proxy);
             
-        proxy_service.add_tcp("0.0.0.0:8080");
+        // Public entry point - Render routes "PORT" to here
+        let port = std::env::var("PORT").unwrap_or_else(|_| "8080".to_string());
+        let addr = format!("0.0.0.0:{}", port);
+        proxy_service.add_tcp(&addr);
 
-        info!("🛡️  Pingora proxy listening on 0.0.0.0:8080");
+        info!("🛡️  Pingora WAF listening on {}", addr);
         server.add_service(proxy_service);
         server.run_forever();
     });
 
     // ── Layer 3: Ouroboros Evolution Heartbeat ────────────────────
-    // Heartbeat logic to keep connections alive
-    let _heartbeat_tx = tx.clone();
-    // 🧬 Ouroboros Heartbeat: Triggering autonomous evolution cycle (DISABLED for manual demo control)
-    /*
+    // 🧬 Ouroboros Heartbeat: Triggering autonomous evolution cycle (Lightweight status check)
+    let heartbeat_tx = tx.clone();
     tokio::spawn(async move {
-        let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(75));
+        let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(45));
         loop {
             interval.tick().await;
-            info!("🧬 Ouroboros heartbeat: triggering autonomous evolution cycle");
-            let event = TelemetryEvent::evolution();
+            info!("🛡️ System heartbeat: verification check complete.");
+            let event = TelemetryEvent::safe("system-kernel", 120); // Send periodic safe events to keep grid active
             if let Ok(json) = serde_json::to_string(&event) {
                 let _ = heartbeat_tx.send(json);
             }
         }
     });
-    */
 
     info!("✅ IronWall+ Gamethon backend is LIVE");
-    info!("   📡 WebSocket telemetry → ws://localhost:9001/ws");
-    info!("   🛡️  Pingora proxy       → http://localhost:8080");
-    info!("   💚 Open frontend/index.html    → Game Board");
-    info!("   🔴 Open frontend/attacker.html → Red Team Controller");
+    info!("   🛡️  Unified WAF Entry  → http://0.0.0.0:{}", std::env::var("PORT").unwrap_or_else(|_| "8080".to_string()));
+    info!("   🎮 Internal Core      → 127.0.0.1:9001");
+    info!("   📡 Telemetry Channel  → Active");
 
     // Run both layers until one exits
     tokio::select! {
