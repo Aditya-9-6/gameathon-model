@@ -520,7 +520,7 @@ async fn ai_proxy(
     match res {
         Ok(resp) => {
             let status = resp.status();
-            let body = resp.bytes().await.unwrap_or_default();
+            let body: bytes::Bytes = resp.bytes().await.unwrap_or_default();
             axum::response::Response::builder()
                 .status(status)
                 .body(axum::body::Body::from(body))
@@ -592,7 +592,7 @@ async fn main() -> Result<()> {
         .route("/health", get(health))
         .route("/api/ai/*path", axum::routing::any(ai_proxy))
         .nest_service("/assets", ServeDir::new(frontend_path.clone())) 
-        .fallback_service(ServeDir::new(frontend_path.clone()).fallback(get(serve_index))) 
+        .fallback_service(ServeDir::new(frontend_path.clone()).fallback(get(serve_root))) 
         .layer(
             CorsLayer::new()
                 .allow_origin(Any)
