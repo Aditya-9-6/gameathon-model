@@ -3,323 +3,288 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>IRONWALL+ | UNIFIED COMMAND CENTER</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap"
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap"
         rel="stylesheet">
     <style>
-        :root {
-            --neon-cyan: #00f5ff;
-            --neon-red: #ff1744;
-            --bg-deep: #030308;
-            --panel-bg: #0a0a12;
-            --border-glow: rgba(0, 245, 255, 0.3);
-        }
-
         body {
             margin: 0;
             padding: 0;
-            background: var(--bg-deep);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            font-family: 'Orbitron', sans-serif;
-            color: #fff;
-        }
-
-        /* Top Header Bar */
-        .command-header {
-            height: 50px;
-            background: #000;
-            border-bottom: 2px solid var(--neon-cyan);
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-            justify-content: space-between;
-            box-shadow: 0 5px 20px rgba(0, 245, 255, 0.2);
-            z-index: 100;
-        }
-
-        .header-logo {
-            font-weight: 900;
-            letter-spacing: 3px;
-            color: var(--neon-cyan);
-            text-shadow: 0 0 10px var(--neon-cyan);
-            font-size: 1.2rem;
-        }
-
-        .header-status {
+            background: #020205;
+            color: #00f5ff;
             font-family: 'Share Tech Mono', monospace;
-            font-size: 0.8rem;
-            color: var(--neon-cyan);
             display: flex;
-            align-items: center;
-        }
-
-        .header-status span {
-            margin-left: 15px;
-            opacity: 0.8;
-        }
-
-        .blink {
-            animation: blinker 1s linear infinite;
-        }
-
-        @keyframes blinker {
-            50% {
-                opacity: 0;
-            }
-        }
-
-        /* Main Workspace */
-        .workspace {
-            flex: 1;
-            display: flex;
+            flex-direction: column;
+            height: 100vh;
             overflow: hidden;
         }
 
-        /* Viewport Containers */
-        .viewport {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-        }
-
-        #defense-viewport {
-            flex: 1.2;
-            border-right: 2px solid var(--neon-cyan);
-        }
-
-        #attack-viewport {
-            flex: 0.8;
-            border-left: 1px solid rgba(255, 23, 68, 0.2);
-        }
-
-        /* Viewport Headers */
-        .viewport-title {
-            height: 30px;
-            background: rgba(0, 0, 0, 0.8);
+        /* Top Bar */
+        #top-bar {
+            height: 56px;
+            background: rgba(2, 2, 5, 0.95);
+            border-bottom: 1px solid rgba(0, 245, 255, 0.2);
             display: flex;
             align-items: center;
-            padding: 0 15px;
-            font-size: 0.7rem;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 100;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            margin: 0;
             letter-spacing: 2px;
-            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 0 10px #00f5ff;
         }
 
-        .defense-title {
-            color: var(--neon-cyan);
+        .brand .badge {
+            font-size: 0.6rem;
+            background: rgba(0, 245, 255, 0.1);
+            padding: 2px 6px;
+            border: 1px solid rgba(0, 245, 255, 0.4);
+            border-radius: 4px;
+            color: #00f5ff;
         }
 
-        .attack-title {
-            color: var(--neon-red);
+        .nav-controls {
+            display: flex;
+            gap: 15px;
         }
 
-        /* Iframes */
-        iframe {
+        .nav-link {
+            text-decoration: none;
+            color: rgba(0, 245, 255, 0.6);
+            font-size: 0.8rem;
+            padding: 5px 10px;
+            border: 1px solid transparent;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: #fff;
+            border-color: rgba(0, 245, 255, 0.3);
+            background: rgba(0, 245, 255, 0.05);
+            text-shadow: 0 0 8px #00f5ff;
+        }
+
+        /* Viewport Layout */
+        #viewport {
             flex: 1;
+            display: flex;
+            position: relative;
+            background: #000;
+        }
+
+        /* Pane Styling */
+        .pane {
+            height: 100%;
+            position: relative;
+            transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+        }
+
+        #defense-pane {
+            width: 70%;
+            border-right: 1px solid rgba(0, 245, 255, 0.1);
+        }
+
+        #attack-pane {
+            width: 30%;
+            background: #050510;
+        }
+
+        /* Fullscreen Toggle Mode */
+        body.focus-defense #defense-pane {
+            width: 100%;
+        }
+
+        body.focus-defense #attack-pane {
+            width: 0%;
+        }
+
+        body.focus-attack #defense-pane {
+            width: 0%;
+        }
+
+        body.focus-attack #attack-pane {
+            width: 100%;
+        }
+
+        /* Frame container */
+        .frame-wrap {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        iframe {
             width: 100%;
             height: 100%;
             border: none;
-            background: #000;
+            background: transparent;
         }
 
-        /* Overlay CRT Effect */
-        .crt-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            background-size: 100% 4px, 3px 100%;
+        /* Interaction Overlay (optional) */
+        .pane-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 0.6rem;
+            color: rgba(255, 255, 255, 0.3);
+            z-index: 10;
             pointer-events: none;
-            z-index: 1000;
-            opacity: 0.15;
-        }
-
-        /* Controls */
-        .floating-controls {
-            display: flex;
-            gap: 10px;
-            margin-right: 20px;
-        }
-
-        .control-btn {
-            background: rgba(0, 245, 255, 0.05);
-            border: 1px solid var(--neon-cyan);
-            color: var(--neon-cyan);
-            padding: 4px 12px;
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 0.65rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-transform: uppercase;
             letter-spacing: 1px;
-            border-radius: 4px;
+            text-transform: uppercase;
         }
 
-        .control-btn:hover {
-            background: var(--neon-cyan);
-            color: #000;
-            box-shadow: 0 0 15px var(--neon-cyan);
+        /* Bottom Status bar */
+        #status-bar {
+            height: 24px;
+            background: #000;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            font-size: 0.6rem;
+            color: #444;
+            letter-spacing: 1px;
         }
 
-        .control-btn.active {
-            background: var(--neon-cyan);
-            color: #000;
+        .status-item {
+            margin-right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
-        /* Responsiveness: Handle narrow screens */
-        @media (max-width: 1200px) {
-            .workspace {
+        .dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: #39ff14;
+            box-shadow: 0 0 5px #39ff14;
+        }
+
+        /* Mobile / Split View Controller */
+        #view-toggle {
+            display: none;
+            position: absolute;
+            bottom: 40px;
+            right: 20px;
+            z-index: 200;
+            background: rgba(2, 2, 5, 0.9);
+            border: 1px solid #00f5ff;
+            padding: 10px;
+            border-radius: 50px;
+            box-shadow: 0 0 20px rgba(0, 245, 255, 0.3);
+            gap: 10px;
+        }
+
+        @media (max-width: 1100px) {
+            /* (AI panel auto-activation removed — user can open with the button inside the defense frame) */
+            #viewport {
                 flex-direction: column;
             }
 
-            #defense-viewport,
-            #attack-viewport {
-                border: none;
-                flex: 1;
+            #defense-pane,
+            #attack-pane {
+                width: 100% !important;
+                height: 50%;
             }
 
-            #defense-viewport {
-                border-bottom: 2px solid var(--neon-cyan);
+            body.focus-defense #attack-pane {
+                display: none;
+            }
+
+            body.focus-defense #defense-pane {
+                height: 100%;
+            }
+
+            body.focus-attack #defense-pane {
+                display: none;
+            }
+
+            body.focus-attack #attack-pane {
+                height: 100%;
             }
         }
     </style>
 </head>
 
 <body>
-    <div class="crt-overlay"></div>
 
-    <header class="command-header">
-        <div class="header-logo">IRONWALL+ <span style="font-size: 0.7rem; opacity: 0.6;">UNIFIED COMMAND CENTER</span>
+    <header id="top-bar">
+        <div class="brand">
+            <h1>IRONWALL<span style="color:#ff1744">✛</span></h1>
+            <span class="badge">UNIFIED COMMAND v15.0</span>
         </div>
-        <div class="header-status">
-            <div id="lobby-code-badge" style="color:#bf5fff; border-right: 1px solid rgba(191,95,255,0.3); padding-right:12px; margin-right:12px; display:none; align-items:center; gap:8px;">
-                <span style="opacity:0.6; font-size:0.7rem; font-family: 'Share Tech Mono', monospace;">LOBBY:</span>
-                <span id="lobby-code-val" style="font-weight:900; letter-spacing:2px; font-size:0.9rem;">----</span>
-                <button id="share-lobby-btn" title="Share Join Link" style="background:none; border:none; color:inherit; cursor:pointer; padding:2px; display:flex; align-items:center; opacity:0.7; transition:opacity 0.2s;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
-                </button>
-            </div>
-            <div class="floating-controls">
-                <button class="control-btn" onclick="setView('defense')">Defense Focus</button>
-                <button class="control-btn active" onclick="setView('split')">Split Screen</button>
-                <button class="control-btn" onclick="setView('attack')">Attack Focus</button>
-            </div>
-            <span class="blink">● SYSTEM ONLINE</span>
-            <span>OS: TITAN-KERNEL v4.0</span>
-            <span id="timer">00:00:00</span>
-        </div>
+
+        <nav class="nav-controls">
+            <div class="nav-link active" onclick="setView('split')">SPLIT VIEW</div>
+            <div class="nav-link" onclick="setView('defense')">DEFENSE CORE</div>
+            <div class="nav-link" onclick="setView('attack')">RED TEAM</div>
+            <a href="lobby.html" class="nav-link">EXIT TO LOBBY</a>
+        </nav>
     </header>
 
-    <main class="workspace">
-        <section id="defense-viewport" class="viewport">
-            <div class="viewport-title defense-title">// DEFENSE GRID OPERATIONS</div>
-            <iframe id="defense-frame" src="index.html?v=2"></iframe>
+    <main id="viewport">
+        <!-- Defense Pane -->
+        <section id="defense-pane" class="pane">
+            <div class="pane-label">// ACTIVE DEFENSE GRID</div>
+            <div class="frame-wrap">
+                <iframe src="defense.html" id="defense-frame" title="Defense Grid"></iframe>
+            </div>
         </section>
 
-        <section id="attack-viewport" class="viewport">
-            <div class="viewport-title attack-title">// RED TEAM OFFENSE TERMINAL</div>
-            <iframe id="attack-frame" src="attacker.html?v=2"></iframe>
+        <!-- Red Team Pane -->
+        <section id="attack-pane" class="pane">
+            <div class="pane-label">// OFFENSIVE OPERATIONS</div>
+            <div class="frame-wrap">
+                <iframe src="attacker.html?v=101" id="attack-frame" title="Red Team Panel"></iframe>
+            </div>
         </section>
     </main>
 
+    <footer id="status-bar">
+        <div class="status-item"><span class="dot"></span> SYST-OK</div>
+        <div class="status-item">WS-BRIDGE: ESTABLISHED</div>
+        <div class="status-item">LATENCY: 0.12ms</div>
+        <div style="margin-left: auto;">PROJECT NIRVANA — ABSOLUTE SOVEREIGNTY</div>
+    </footer>
 
     <script>
-        // Set focus mode
         function setView(mode) {
-            const def = document.getElementById('defense-viewport');
-            const atk = document.getElementById('attack-viewport');
-            const btns = document.querySelectorAll('.control-btn');
-
-            btns.forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
+            document.body.classList.remove('focus-defense', 'focus-attack');
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
 
             if (mode === 'defense') {
-                def.style.flex = "1";
-                atk.style.flex = "0";
-                atk.style.opacity = "0";
+                document.body.classList.add('focus-defense');
+                event.target.classList.add('active');
             } else if (mode === 'attack') {
-                def.style.flex = "0";
-                def.style.opacity = "0";
-                atk.style.flex = "1";
-                atk.style.opacity = "1";
+                document.body.classList.add('focus-attack');
+                event.target.classList.add('active');
             } else {
-                def.style.flex = "1.2";
-                def.style.opacity = "1";
-                atk.style.flex = "0.8";
-                atk.style.opacity = "1";
+                document.querySelectorAll('.nav-link')[0].classList.add('active');
             }
         }
 
-        // Timer
-        setInterval(() => {
-            const now = new Date();
-            document.getElementById('timer').textContent = now.toLocaleTimeString();
-        }, 1000);
-
-        // Sync audio
-        window.addEventListener('mousedown', () => {
-            const def = document.getElementById('defense-frame').contentWindow;
-            const atk = document.getElementById('attack-frame').contentWindow;
-            if (def.audio) def.audio.init();
-            if (atk.audio) atk.audio.init();
-        }, { once: true });
-
-        // Auto-activate LLM in Unified (Mix) mode
+        // Auto-refresh frames on load to ensure SW pickup
         window.addEventListener('load', () => {
-            const defFrame = document.getElementById('defense-frame');
-            defFrame.addEventListener('load', () => {
-                const defDoc = defFrame.contentDocument || defFrame.contentWindow.document;
-                const aiBtn = defDoc.getElementById('ai-chat-toggle-btn');
-                if (aiBtn) {
-                    console.log("[Unified] Auto-activating AI Consultant panel...");
-                    aiBtn.click();
-                }
-            });
-        });
-        // Lobby Code Detection
-        async function fetchLobbyCode() {
-            try {
-                const res = await fetch('/api/lobby-code');
-                const data = await res.json();
-                const badge = document.getElementById('lobby-code-badge');
-                const val = document.getElementById('lobby-code-val');
-                if (badge && val && data.code) {
-                    val.textContent = data.code;
-                    badge.style.display = 'flex';
-
-                    const shareBtn = document.getElementById('share-lobby-btn');
-                    if (shareBtn) {
-                        shareBtn.onclick = () => {
-                            const joinUrl = window.location.origin + '/lobby.html?code=' + data.code;
-                            navigator.clipboard.writeText(joinUrl).then(() => {
-                                const originalColor = shareBtn.style.color;
-                                shareBtn.style.color = '#39ff14'; // neon-green
-                                shareBtn.title = 'COPIED!';
-                                setTimeout(() => {
-                                    shareBtn.style.color = originalColor;
-                                    shareBtn.title = 'Share Join Link';
-                                }, 2000);
-                            });
-                        };
-                    }
-                }
-            } catch (e) {
-                console.warn('Lobby code not available');
-            }
-        }
-        fetchLobbyCode();
-
-        // Listen for navigation messages from children (Defense HUD buttons)
-        window.addEventListener('message', (event) => {
-            if (event.data.type === 'SET_VIEW') {
-                setView(event.data.mode);
-            }
+            console.log("Unified Command Online.");
         });
     </script>
 </body>

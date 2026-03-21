@@ -358,6 +358,13 @@ impl ProxyHttp for IronWallProxy {
         let json = serde_json::to_string(&event).unwrap_or_default();
         let _ = self.tx.send(json);
 
+        // 🛡️ CRITICAL: Support WebSocket Upgrades through Pingora
+        // We must ensure 'Upgrade' and 'Connection' headers are preserved
+        let is_upgrade = session.req_header().headers.get("upgrade").is_some();
+        if is_upgrade {
+            info!("🔌 WebSocket Upgrade detected on {}: preserving headers", uri_payload);
+        }
+
         Ok(false) // false = forward the request normally
     }
 
@@ -463,35 +470,71 @@ async fn health() -> impl IntoResponse {
     axum::Json(serde_json::json!({
         "status": "ONLINE",
         "system": "IronWall+ Gamethon Demo",
-        "version": "1.0.3",
+        "version": "1.0.4",
         "layers": {
             "proxy": "Pingora:8080",
             "telemetry_ws": "axum:9001",
-            "engine": "Hard-Embedded Static Assets"
+            "engine": "Dynamic File Assets"
         }
     }))
 }
 
-// ── Embedded Static Assets ──
-const INDEX_HTML: &str = include_str!("../../frontend/index.html");
-const UNIFIED_HTML: &str = include_str!("../../frontend/unified.html");
-const ATTACKER_HTML: &str = include_str!("../../frontend/attacker.html");
-const LOBBY_HTML: &str = include_str!("../../frontend/lobby.html");
-
-async fn serve_unified() -> impl IntoResponse {
-    axum::response::Html(UNIFIED_HTML).into_response()
-}
-
-async fn serve_attacker() -> impl IntoResponse {
-    axum::response::Html(ATTACKER_HTML).into_response()
-}
-
-async fn serve_lobby() -> impl IntoResponse {
-    axum::response::Html(LOBBY_HTML).into_response()
+async fn get_frontend_path() -> std::path::PathBuf {
+    if std::path::Path::new("frontend").exists() {
+        std::path::PathBuf::from("frontend")
+    } else if std::path::Path::new("../frontend").exists() {
+        std::path::PathBuf::from("../frontend")
+    } else {
+        std::path::PathBuf::from(".")
+    }
 }
 
 async fn serve_root() -> impl IntoResponse {
-    axum::response::Html(INDEX_HTML).into_response()
+    let path = get_frontend_path().await.join("index.html");
+    match tokio::fs::read_to_string(path).await {
+        Ok(html) => axum::response::Html(html).into_response(),
+        Err(_) => axum::response::Html("<h1>404: Static index missing</h1>").into_response(),
+    }
+}
+
+async fn serve_unified() -> impl IntoResponse {
+    let path = get_frontend_path().await.join("unified.html");
+    match tokio::fs::read_to_string(path).await {
+        Ok(html) => axum::response::Html(html).into_response(),
+        Err(_) => axum::response::Html("<h1>404: Static unified missing</h1>").into_response(),
+    }
+}
+
+async fn serve_attacker() -> impl IntoResponse {
+    let path = get_frontend_path().await.join("attacker.html");
+    match tokio::fs::read_to_string(path).await {
+        Ok(html) => axum::response::Html(html).into_response(),
+        Err(_) => axum::response::Html("<h1>404: Static attacker missing</h1>").into_response(),
+    }
+}
+
+async fn serve_lobby() -> impl IntoResponse {
+    let path = get_frontend_path().await.join("lobby.html");
+    match tokio::fs::read_to_string(path).await {
+        Ok(html) => axum::response::Html(html).into_response(),
+        Err(_) => axum::response::Html("<h1>404: Static lobby missing</h1>").into_response(),
+    }
+}
+
+async fn serve_defense() -> impl IntoResponse {
+    let path = get_frontend_path().await.join("defense.html");
+    match tokio::fs::read_to_string(path).await {
+        Ok(html) => axum::response::Html(html).into_response(),
+        Err(_) => axum::response::Html("<h1>404: Defense panel not found</h1>").into_response(),
+    }
+}
+
+async fn serve_demo() -> impl IntoResponse {
+    let path = get_frontend_path().await.join("demo.html");
+    match tokio::fs::read_to_string(path).await {
+        Ok(html) => axum::response::Html(html).into_response(),
+        Err(_) => axum::response::Html("<h1>404: Demo page not found</h1>").into_response(),
+    }
 }
 
 async fn get_lobby_code() -> impl IntoResponse {
@@ -597,6 +640,8 @@ async fn main() -> Result<()> {
         .route("/unified.html", get(serve_unified))
         .route("/attacker.html", get(serve_attacker))
         .route("/lobby.html", get(serve_lobby))
+        .route("/defense.html", get(serve_defense))
+        .route("/demo.html", get(serve_demo))
         .route("/api/lobby-code", get(get_lobby_code))
         .route("/ws", get(ws_handler))
         .route("/health", get(health))
@@ -614,7 +659,7 @@ async fn main() -> Result<()> {
     // ── Layer 2: axum Core Server (Internal) ──────────────────────
     let axum_handle = tokio::spawn(async move {
         // Internal port - Pingora forwards traffic here
-        let addr = "127.0.0.1:9001";
+        let addr = "0.0.0.0:9001";
         let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
         info!("🎮 Internal axum server listening on {}", addr);
         axum::serve(listener, app).await.unwrap();
@@ -623,6 +668,7 @@ async fn main() -> Result<()> {
     // ── Layer 1: Pingora WAF Proxy (Public Entry Point) ───────────
     let pingora_handle = tokio::task::spawn_blocking(move || {
         // Use fixed opts to avoid Render passing unwanted args to Pingora
+        use clap::Parser;
         let opt = Opt::from_iter(vec!["ironwall"]);
         let mut server = Server::new(Some(opt)).expect("Pingora server init failed");
         server.bootstrap();

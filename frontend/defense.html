@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="IronWall+">
+  <meta name="theme-color" content="#030308">
+  <title>IronWall+ | Defense Grid</title>
+  <meta name="description" content="IronWall+ — Real-time AI-powered network defense. Gamethon 2026 Demo." />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <div id="app">
+
+    <!-- ── Top Header ── -->
+    <header id="header">
+      <div class="logo">⚡ IRONWALL+ <span style="font-size:0.5em;opacity:0.6;">v2.0 GAMETHON</span></div>
+      <div class="status-badge">
+        <div class="status-dot"></div>
+        <span>DEFENSE GRID ACTIVE</span>
+      </div>
+      <div id="lobby-code-badge" class="status-badge" style="color:var(--neon-purple); border-left: 1px solid rgba(191,95,255,0.3); padding-left:12px; margin-left:12px; display:none; align-items:center; gap:8px;">
+        <span style="opacity:0.6; font-size:0.8em;">LOBBY:</span>
+        <span id="lobby-code-val" style="font-weight:900; letter-spacing:2px;">----</span>
+        <button id="share-lobby-btn" title="Share Join Link" style="background:none; border:none; color:inherit; cursor:pointer; padding:2px; display:flex; align-items:center; opacity:0.7; transition:opacity 0.2s;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+        </button>
+      </div>
+      <div class="header-actions">
+        <button id="ai-chat-toggle-btn" class="record-btn"
+          style="border-color:#ff0055;color:#ff0055;box-shadow:inset 0 0 10px rgba(255,0,85,0.2);">🤖 AI CONSULTANT</button>
+        <button id="stats-btn" class="record-btn"
+          style="border-color:#a855f7;color:#a855f7;box-shadow:inset 0 0 10px rgba(168,85,247,0.2);">📊 STATS</button>
+        <button id="voice-btn" class="record-btn"
+          style="border-color: #00f5ff; color: #00f5ff; box-shadow: inset 0 0 10px rgba(0,245,255,0.2);">🔊 VOICE</button>
+        <button id="record-btn" class="record-btn">⏺ REC</button>
+      </div>
+      <div id="ws-status">◌ CONNECTING...</div>
+    </header>
+
+
+    <div id="arena-container">
+      <div id="matrix-stream" class="matrix-log-container"></div>
+      <!-- ── Arena ── -->
+      <div id="arena">
+        <!-- Main 2D Canvas — packets + Core Server -->
+        <canvas id="gameCanvas"></canvas>
+        <!-- WebGL glitch overlay shader -->
+        <canvas id="glitchCanvas"></canvas>
+
+        <!-- Combo Meter -->
+        <div id="combo-display">
+          <div id="combo-label">×1</div>
+          <div id="combo-sub">COMBO MULTIPLIER</div>
+        </div>
+
+        <!-- Threat Log -->
+        <div id="threat-log">
+          <div id="threat-log-title">// THREAT LOG</div>
+          <div id="log-entries"></div>
+        </div>
+
+        <!-- ── AI Debrief Notification (Blue Team slide-in) ── -->
+        <div id="ai-debrief" class="ai-debrief hidden" aria-live="polite">
+          <div class="debrief-header">
+            <span class="debrief-shield">🛡</span>
+            <span class="debrief-tag">FLUXGATE AI · BLUE TEAM DEBRIEF</span>
+          </div>
+          <div class="debrief-title" id="debrief-title">Attack Neutralized.</div>
+          <div class="debrief-body" id="debrief-body"></div>
+        </div>
+
+      </div> <!-- End #arena -->
+    </div> <!-- End #arena-container -->
+
+    <!-- ── World Attack Map ── -->
+    <div id="world-map-container">
+      <div class="world-map-title">// GLOBAL ORIGIN MAP</div>
+      <canvas id="worldMapCanvas"></canvas>
+    </div>
+
+    <!-- ── Live Stats Panel ── -->
+    <div id="stats-panel" class="hidden">
+      <div class="stats-header">// SESSION STATISTICS <button id="stats-close"
+          style="float:right;background:none;border:none;color:#888;cursor:pointer;font-size:1rem;">✕</button></div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">TOP THREAT</div>
+          <div class="stat-value" id="stat-top-threat">--</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">DAMAGE AVERTED</div>
+          <div class="stat-value" id="stat-damage">₹0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">SESSIONS PROTECTED</div>
+          <div class="stat-value" id="stat-sessions">9,814</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">AVG BLOCK TIME</div>
+          <div class="stat-value" id="stat-avg-block">--</div>
+        </div>
+      </div>
+      <div class="stats-chart-label">// ATTACK BREAKDOWN</div>
+      <div id="stats-bars">
+        <!-- Populated by game.js -->
+      </div>
+      <div class="stats-chart-label" style="margin-top:12px;">// LAST 10 ATTACKS TIMELINE</div>
+      <canvas id="sparklineCanvas" height="50"></canvas>
+    </div>
+
+    <!-- ── Attack Replay Panel ── -->
+    <div id="replay-panel">
+      <div class="replay-header">
+        <span>// SIEGE REPLAY</span>
+        <button id="replay-btn" title="Replay last 10 attacks">▶ REPLAY SIEGE</button>
+      </div>
+      <div id="replay-feed"></div>
+    </div>
+
+    <!-- ── Bottom HUD ── -->
+    <footer id="hud">
+      <div class="hud-block">
+        <span class="hud-label">Threats Neutralized</span>
+        <span class="hud-value safe" id="hud-threats">0</span>
+      </div>
+      <div class="hud-block">
+        <span class="hud-label">Compute Saved</span>
+        <span class="hud-value" id="hud-compute">0.00 ms</span>
+      </div>
+      <div class="hud-block">
+        <span class="hud-label">Uptime</span>
+        <span class="hud-value" id="hud-uptime">00:00:00</span>
+      </div>
+      <div class="hud-block">
+        <span class="hud-label">Threat Level</span>
+        <span class="hud-value danger" id="hud-level">NOMINAL</span>
+        <div id="threat-bar-wrap">
+          <div id="threat-bar"></div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- ── Phase 3: Educational UI ── -->
+
+    <!-- Code Fix Comparison Modal -->
+    <div id="code-fix-overlay">
+      <div id="code-fix-modal">
+        <div class="fix-header">
+          <h3 class="fix-title" id="fix-title">Technical Deep Dive</h3>
+          <button class="fix-close" id="fix-close">&times;</button>
+        </div>
+        <div class="fix-grid">
+          <div class="fix-column bad">
+            <h4>⚠ Vulnerable Code</h4>
+            <div class="code-block bad" id="code-bad"></div>
+          </div>
+          <div class="fix-column good">
+            <h4>🛡 Secure Implementation</h4>
+            <div class="code-block good" id="code-good"></div>
+          </div>
+        </div>
+        <div class="fix-explanation" id="fix-explanation"></div>
+      </div>
+    </div>
+
+    <!-- Cyber-Wiki Glossary Panel -->
+    <div id="knowledge-btn" title="Open Cyber-Wiki">?</div>
+    <div id="glossary-panel">
+      <div class="glossary-header">
+        <h3 class="glossary-title">Cyber-Wiki / Documentation</h3>
+        <div id="close-glossary" style="cursor:pointer; font-size:1.5rem; color:var(--neon-cyan); text-shadow:0 0 10px var(--neon-cyan);">&times;</div>
+      </div>
+      <div id="glossary-content">
+        <!-- Populated by game.js -->
+      </div>
+    </div>
+
+    <!-- ── Phase 4: Active Defense Quizzes ── -->
+    <div id="quiz-overlay" class="hidden">
+      <div id="quiz-modal">
+        <div class="quiz-header">
+          <span class="quiz-icon">⚠</span>
+          <h3 class="quiz-title">ACTIVE THREAT BLOCKED</h3>
+        </div>
+        <div class="quiz-subtitle" id="quiz-subtitle">How do we patch the root vulnerability?</div>
+        <div class="quiz-body">
+          <div id="quiz-question" class="quiz-question"></div>
+          <div id="quiz-options" class="quiz-options"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Phase 5: Phishing Minigame (Email Client) ── -->
+    <div id="phishing-overlay" class="hidden">
+      <div id="phishing-modal">
+        <div class="phish-header">
+          <div style="font-size: 1.2rem;">✉ New Message: <span id="phish-subject">Urgent: Password Reset Required</span>
+          </div>
+        </div>
+        <div class="phish-body">
+          <div class="phish-meta">
+            From: <span id="phish-from" class="phish-sender">admin@ironwa11.com</span><br>
+            To: <span class="phish-recipient">employee@ironwall.com</span>
+          </div>
+          <div id="phish-content" class="phish-content">
+            Please click the secure link below to verify your IronWall+ active directory credentials immediately to
+            avoid account suspension.
+          </div>
+          <div class="phish-link-box">
+            <a href="#" id="phish-bad-link">https://secure.ironwall.corp-auth.com/login</a>
+          </div>
+        </div>
+        <div class="phish-footer">
+          <button class="phish-btn safe" id="phish-report-btn">Report to IT (Phishing)</button>
+          <button class="phish-btn danger" id="phish-open-btn">Open Link</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── FEATURE 10: LOCAL AI CHATBOT ── -->
+    <div id="ai-chat-panel" class="hidden">
+      <div class="ai-chat-header">
+        <span>🤖 IRONWALL+ AI CONSULTANT</span>
+        <button id="ai-chat-close"
+          style="background:none;border:none;color:#ff6b35;font-size:1.2rem;cursor:pointer;">✕</button>
+      </div>
+      <div class="ai-chat-config">
+        <label style="font-size:0.7rem; color:#aaa;">API Endpoint:</label>
+        <input type="text" id="ai-endpoint-url" value="/api/ai/chat"
+          style="width:100%; padding:4px; font-size:0.75rem; background:#000; color:#00f5ff; border:1px solid #005a9e; margin-top:4px;">
+        <label style="font-size:0.7rem; color:#aaa; margin-top:5px; display:block;">Model Name:</label>
+        <input type="text" id="ai-model-name" value="tinyllama"
+          style="width:100%; padding:4px; font-size:0.75rem; background:#000; color:#00f5ff; border:1px solid #005a9e; margin-top:4px;">
+      </div>
+      <div id="ai-chat-history">
+        <div class="chat-msg ai">
+          <strong>SYSTEM:</strong> IronWall+ AI Consultant Online. Ask me about cyber threats.
+        </div>
+      </div>
+      <div class="ai-chat-input-area">
+        <input type="text" id="ai-chat-input" placeholder="Ask the AI Consultant..." autocomplete="off">
+        <button id="ai-chat-send">SEND</button>
+      </div>
+    </div>
+
+  </div> <!-- End #app -->
+
+  <script src="recorder.js"></script>
+  <script src="chatbot.js"></script>
+  <script src="game.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+  </script>
+
+</body>
+
+</html>
